@@ -1,7 +1,7 @@
 # timma
 
 usage:
-121
+
 1. loading R functions into environment <br />
    file.sources = list.files(pattern="*.R") <br />
    sapply(file.sources,source,.GlobalEnv)
