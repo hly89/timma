@@ -3,7 +3,7 @@ GetEfficacyMat <- function(data, sens, averaging = "one.sided") {
 	if (!(averaging %in% c("one.sided", "two.sided"))) {
 		stop("Unkown averaging method!")
 	}
-    
+    data <- as.matrix(data)
     # get drug number
     drug.num <- nrow(data)
     # get target number

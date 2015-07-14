@@ -34,6 +34,7 @@ RunTimmaFullBin <- function(data, sens, loo = TRUE, averaging = "one.sided") {
 		stop("Unkown averaging method!")
 	}
     
+	data <- as.matrix(data)
     # get drug number
     drug.num <- nrow(data)
     # get target number
