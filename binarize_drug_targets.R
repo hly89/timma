@@ -17,28 +17,30 @@
 #'
 BinarizeData<-function(profile, method="universal", threshold="100nM"){
   # find the NA entries
-  nas <- which(is.na(profile)==TRUE, arr.ind=TRUE)
-  if(method=="universal"){
+  nas <- which(is.na(profile) == TRUE, arr.ind = TRUE)
+  if (method == "universal") {
     # find entries over threshold -> 0
-    if(threshold=="100nM"){
-      zeros <- which(profile>=100, arr.ind=TRUE)
-      ones <- which(profile<100, arr.ind=TRUE)
+    if (threshold == "100nM") {
+      zeros <- which(profile >= 100, arr.ind = TRUE)
+      ones <- which(profile < 100, arr.ind = TRUE)
       profile[zeros] <- 0
       profile[ones] <- 1
-    }else if(threshold=="1000nM"){
+    } else if (threshold == "1000nM") {
       zeros <- which(profile>=1000, arr.ind=TRUE)
       ones <- which(profile<1000, arr.ind=TRUE)
       profile[zeros] <- 0
       profile[ones] <- 1
-    }else if(threshold=="10000nM"){
+    } else if(threshold=="10000nM") {
       zeros <- which(profile>=10000, arr.ind=TRUE)
       ones <- which(profile<10000, arr.ind=TRUE)
       profile[zeros] <- 0
       profile[ones] <- 1
-    }else{stop("undefined threshold for the universal method.")}
-  }else if(method=="drug-specific"){
+    } else {
+		stop("undefined threshold for the universal method.")
+	}
+  } else if(method=="drug-specific") {
     if(threshold=="10fold"){
-      for(i in seq_len(nrow(profile))){
+      for(i in seq_len(nrow(profile))) {
         # find the min kd
         min.kd <- min(profile[i,], na.rm=TRUE)
         # threshold
@@ -49,8 +51,8 @@ BinarizeData<-function(profile, method="universal", threshold="100nM"){
         profile[i,ones] <- 1
         profile[i, zeros] <- 0
       }
-    }else if(threshold=="50fold"){
-      for(i in seq_len(nrow(profile))){
+    } else if(threshold=="50fold") {
+      for(i in seq_len(nrow(profile))) {
         # find the min kd
         min.kd <- min(profile[i,], na.rm=TRUE)
         # threshold
@@ -61,8 +63,8 @@ BinarizeData<-function(profile, method="universal", threshold="100nM"){
         profile[i,ones] <- 1
         profile[i, zeros] <- 0
       }
-    }else if(threshold=="100fold"){
-      for(i in seq_len(nrow(profile))){
+    } else if(threshold=="100fold") {
+      for(i in seq_len(nrow(profile))) {
         # find the min kd
         min.kd <- min(profile[i,], na.rm=TRUE)
         # threshold
@@ -73,8 +75,12 @@ BinarizeData<-function(profile, method="universal", threshold="100nM"){
         profile[i,ones] <- 1
         profile[i, zeros] <- 0
       }
-    }else {stop("undefined threshold for the drug-specific method.")}
-  }else {stop("undefined method.")}
+    } else {
+		stop("undefined threshold for the drug-specific method.")
+	}
+  } else {
+	  stop("undefined method.")
+  }
   profile[nas] <- 0
   return(profile)
 }

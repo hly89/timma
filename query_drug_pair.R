@@ -6,7 +6,7 @@ QueryDrugPair <- function(data, sens, drug.pair = c()) {
 	if (class(drug.pair) == "character") {
 		drug.pair.idx <- match(drug.pair, rownames(data))
 		if (length(drug.pair.idx) != 2) {
-			stop("The queried drug pair in not found.")
+			stop("The queried drug pair is not found.")
 		}
 	} else if (class(drug.pair) == "numeric") {
 		drug.pair.idx <- drug.pair
@@ -40,7 +40,13 @@ QueryDrugPair <- function(data, sens, drug.pair = c()) {
 	}
 	
 	#score.test <- c()
+	# get sens for single drugs
+	sens.drug1 <- sens[drug.pair.idx[1]]
+	sens.drug2 <- sens[drug.pair.idx[2]]
 	targets.list <- unique(c(drug1.targets.idx, drug2.targets.idx))
-	score.test <- mean(RunTimmaFullBin(data[, targets.list], sens)$efficacy.mat[2,2])
-	return(list(mean(sens.pred), score.test))
+	graycode.mat <- GetGrayCodeMat(length(targets.list))
+	row.idx <- which.max(graycode.mat$dec.row)
+	col.idx <- which.min(graycode.mat$dec.col)
+	score.test <- mean(RunTimmaFullBin(data[, targets.list], sens)$efficacy.mat[row.idx,col.idx])
+	return(list(sens.pair.pred = mean(sens.pred), sens.drug1 = sens.drug1, sens.drug2 = sens.drug2, score.test = score.test))
 }
