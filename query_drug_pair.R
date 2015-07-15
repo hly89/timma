@@ -8,7 +8,7 @@ QueryDrugPair <- function(data, sens, drug.pair = c()) {
 		if (length(drug.pair.idx) != 2) {
 			stop("The queried drug pair is not found.")
 		}
-	} else if (class(drug.pair) == "numeric") {
+	} else if (class(drug.pair) == "numeric" || class(drug.pair) == "integer") {
 		drug.pair.idx <- drug.pair
 	} else {
 		stop("Error: unknown data type for drug pair")
@@ -18,12 +18,18 @@ QueryDrugPair <- function(data, sens, drug.pair = c()) {
 	# get the targets for the first drug
 	drug1.targets.idx <- which(data[drug.pair.idx[1],] == 1)
 	if (length(drug1.targets.idx) == 0) {
-		stop("No targets for the first drug.")
+		cat("No targets for the first drug. \n")
+	  sens.drug1 <- sens[drug.pair.idx[1]]
+	  sens.drug2 <- sens[drug.pair.idx[2]]
+	  return(list(sens.pair.pred = NA, sens.drug1 = sens.drug1, sens.drug2 = sens.drug2))
 	}
 	# get the targets for the second drug
 	drug2.targets.idx <- which(data[drug.pair.idx[2],] == 1)
 	if (length(drug2.targets.idx) == 0) {
-		stop("No targets for the second drug.")
+		cat("No targets for the second drug. \n")
+	  sens.drug1 <- sens[drug.pair.idx[1]]
+	  sens.drug2 <- sens[drug.pair.idx[2]]
+	  return(list(sens.pair.pred = NA, sens.drug1 = sens.drug1, sens.drug2 = sens.drug2))
 	}
 	
 	sens.pred <- c()
@@ -33,6 +39,7 @@ QueryDrugPair <- function(data, sens, drug.pair = c()) {
 				timma.efficacy.mat <- GetEfficacyMat(data[, i], sens)
 				sens.pred <- c(sens.pred, timma.efficacy.mat[1,2])
 			} else {
+			  
 				timma.efficacy.mat <- GetEfficacyMat(data[, c(i,j)], sens)
 				sens.pred <- c(sens.pred, timma.efficacy.mat[2,2])
 			}
@@ -45,12 +52,12 @@ QueryDrugPair <- function(data, sens, drug.pair = c()) {
 	# get sens for single drugs
 	sens.drug1 <- sens[drug.pair.idx[1]]
 	sens.drug2 <- sens[drug.pair.idx[2]]
-	targets.list <- unique(c(drug1.targets.idx, drug2.targets.idx))
-	graycode.mat <- GetGrayCodeMat(length(targets.list))
-	row.idx <- which.max(graycode.mat$dec.row)
-	col.idx <- which.min(graycode.mat$dec.col)
-	score.test <- GetEfficacyMat(data[, targets.list], sens)[row.idx,col.idx]
-	return(list(sens.pair.pred = mean(sens.pred), sens.drug1 = sens.drug1, sens.drug2 = sens.drug2, score.test = score.test))
+	#targets.list <- unique(c(drug1.targets.idx, drug2.targets.idx))
+	#graycode.mat <- GetGrayCodeMat(length(targets.list))
+	#row.idx <- which.max(graycode.mat$dec.row)
+	#col.idx <- which.min(graycode.mat$dec.col)
+	#score.test <- GetEfficacyMat(data[, targets.list], sens)[row.idx,col.idx]
+	return(list(sens.pair.pred = mean(sens.pred), sens.drug1 = sens.drug1, sens.drug2 = sens.drug2))
 	
 	
 		
