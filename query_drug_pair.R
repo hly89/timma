@@ -42,7 +42,7 @@ QueryDrugPair <- function(data, sens, drug.pair = c()) {
 			if (i == j) {
 				timma.efficacy.mat <- GetEfficacyMat(data[, i], sens)
 				sens.pred <- c(sens.pred, timma.efficacy.mat[1,2])
-				sens.pred.hsa <- c(sens.pred.hsa, timma.efficacy.mat[1,2])
+				sens.pred.hsa <- c(sens.pred.hsa, max(sens.drug1, sens.drug2))
 			} else {
 			  
 				timma.efficacy.mat <- GetEfficacyMat(data[, c(i,j)], sens)
