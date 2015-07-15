@@ -19,7 +19,7 @@ QueryDrugPairMat <- function(data, y) {
     rownames(drug.pair.mat) <- drug.names
     colnames(drug.pair.mat) <- drug.names
     write.table(drug.pair.mat, file = "drug.pair.mat.csv", sep = ",")
-	print(proc.time()-ptm)
+	print(proc.time() - ptm)
 }
 
 QueryDrugPairMat1 <- function(data, y) {
@@ -34,5 +34,24 @@ QueryDrugPairMat1 <- function(data, y) {
     rownames(drug.pair.mat) <- drug.names
     colnames(drug.pair.mat) <- drug.names
     write.table(drug.pair.mat, file = "drug.pair.mat.csv", sep = ",")
-	print(proc.time()-ptm)
+	print(proc.time() - ptm)
+}
+
+QueryDrugPairList <- function (data, y) {
+	# start the clock
+	ptm <- proc.time()
+	drug.names <- rownames(data)
+	row.num <- nrow(data)
+	list.options <- combn(c(1:row.num), 2)
+	drug.pair.list <- matrix(0, nrow = ncol(list.options), ncol = 6)
+	colnames(drug.pair.list) <- c("Drug1", "Drug2", "Prediction Default", "Prediction HSA", "Drug1 Sensitivity", "Drug2 Sensitivity")
+	for (i in seq_len(ncol(list.options))) {
+		drug.pair.list[i, 1:2] <- drug.names[list.options[, i]]
+		drug.pair.list[i, 5:6] <- y[list.options[, i]]
+		sens.pred <- QueryDrugPair(data, y, drug.pair = list.options[, i])
+		drug.pair.list[i, 3:4] <- c(sens.pred$sens.pair.pred, sens.pred$sens.pred.hsa)
+	}
+	write.table(drug.pair.list, file = "drug.pair.list.csv", sep = ",", row.names = FALSE)
+	write.table(drug.pair.list, file = "drug.pair.list.txt", sep = "\t", row.names = FALSE)
+	print(proc.time() - ptm)
 }

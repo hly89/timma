@@ -31,17 +31,25 @@ QueryDrugPair <- function(data, sens, drug.pair = c()) {
 	  sens.drug2 <- sens[drug.pair.idx[2]]
 	  return(list(sens.pair.pred = NA, sens.drug1 = sens.drug1, sens.drug2 = sens.drug2))
 	}
+	# get sens for single drugs
+	sens.drug1 <- sens[drug.pair.idx[1]]
+	sens.drug2 <- sens[drug.pair.idx[2]]
 	
 	sens.pred <- c()
+	sens.pred.hsa <- c()
 	for (i in drug1.targets.idx) {
 		for (j in drug2.targets.idx){
 			if (i == j) {
 				timma.efficacy.mat <- GetEfficacyMat(data[, i], sens)
 				sens.pred <- c(sens.pred, timma.efficacy.mat[1,2])
+				sens.pred.hsa <- c(sens.pred.hsa, timma.efficacy.mat[1,2])
 			} else {
 			  
 				timma.efficacy.mat <- GetEfficacyMat(data[, c(i,j)], sens)
 				sens.pred <- c(sens.pred, timma.efficacy.mat[2,2])
+				# using the HSA model to score
+				hsa.score <- timma.efficacy.mat[2,2] - max(timma.efficacy.mat[2,1], timma.efficacy.mat[1,2])                                                                      
+				sens.pred.hsa <- c(sens.pred.hsa, hsa.score + max(sens.drug1, sens.drug2))
 			}
 		
 			
@@ -49,15 +57,13 @@ QueryDrugPair <- function(data, sens, drug.pair = c()) {
 	}
 
 	#score.test <- c()
-	# get sens for single drugs
-	sens.drug1 <- sens[drug.pair.idx[1]]
-	sens.drug2 <- sens[drug.pair.idx[2]]
+	
 	#targets.list <- unique(c(drug1.targets.idx, drug2.targets.idx))
 	#graycode.mat <- GetGrayCodeMat(length(targets.list))
 	#row.idx <- which.max(graycode.mat$dec.row)
 	#col.idx <- which.min(graycode.mat$dec.col)
 	#score.test <- GetEfficacyMat(data[, targets.list], sens)[row.idx,col.idx]
-	return(list(sens.pair.pred = mean(sens.pred), sens.drug1 = sens.drug1, sens.drug2 = sens.drug2))
+	return(list(sens.pair.pred = mean(sens.pred), sens.drug1 = sens.drug1, sens.drug2 = sens.drug2, sens.pred.hsa = mean(sens.pred.hsa)))
 	
 	
 		
