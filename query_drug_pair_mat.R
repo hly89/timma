@@ -43,25 +43,37 @@ QueryDrugPairList <- function (data, y) {
 	drug.names <- rownames(data)
 	row.num <- nrow(data)
 	list.options <- combn(c(1:row.num), 2)
-	drug.pair.list <- matrix(0, nrow = ncol(list.options), ncol = 6)
-	colnames(drug.pair.list) <- c("Drug1", "Drug2", "Prediction Default", "Prediction HSA", "Drug1 Sensitivity", "Drug2 Sensitivity")
+	drug.pair.list <- matrix(0, nrow = ncol(list.options), ncol = 7)
+	colnames(drug.pair.list) <- c("Group", "Drug1", "Drug2", "Prediction Default", "Prediction HSA", "Drug1 Sensitivity", "Drug2 Sensitivity")
 	for (i in seq_len(ncol(list.options))) {
-		drug.pair.list[i, 1:2] <- drug.names[list.options[, i]]
-		drug.pair.list[i, 5:6] <- y[list.options[, i]]
+		drug1.name <- drug.names[list.options[1, i]]
+		drug2.name <- drug.names[list.options[2, i]]
+		if (substr(drug1.name, 1, 1) < substr(drug2.name, 1, 1)) {
+			name.group <- paste(drug1.name, drug2.name)
+		} else {
+			name.group <- paste(drug2.name, drug1.name)
+		}
+		drug.pair.list[i, 1] <- name.group
+		drug.pair.list[i, 2:3] <- drug.names[list.options[, i]]
+		drug.pair.list[i, 6:7] <- y[list.options[, i]]
 		sens.pred <- QueryDrugPair(data, y, drug.pair = list.options[, i])
-		drug.pair.list[i, 3:4] <- c(sens.pred$sens.pair.pred, sens.pred$sens.pred.hsa)
+		drug.pair.list[i, 4:5] <- c(sens.pred$sens.pair.pred, sens.pred$sens.pred.hsa)
 	}
 	
 	# same drug pair like c(1,1)
-	drug.pair.same <- matrix(0, nrow = row.num, ncol = 6)
+	drug.pair.same <- matrix(0, nrow = row.num, ncol = 7)
 	colnames(drug.pair.same) <- colnames(drug.pair.list)
 	for (i in seq_len(row.num)) {
-		drug.pair.same[i, 1:2] <- drug.names[i]
-		drug.pair.same[i, 5:6] <- y[i]
+		drug.pair.same[i, 1] <- paste(drug.names[i], drug.names[i])
+		drug.pair.same[i, 2:3] <- drug.names[i]
+		drug.pair.same[i, 6:7] <- y[i]
 		sens.pred <- QueryDrugPair(data, y, drug.pair = c(i, i))
-		drug.pair.same[i, 3:4] <- c(sens.pred$sens.pair.pred, sens.pred$sens.pred.hsa)
+		drug.pair.same[i, 4:5] <- c(sens.pred$sens.pair.pred, sens.pred$sens.pred.hsa)
 	}
 	drug.pair.list <- rbind(drug.pair.list, drug.pair.same)
+	# sort the list by group
+	order.idx <- order(drug.pair.list[, 1])
+	drug.pair.list <- drug.pair.list[order.idx, ]
 	write.table(drug.pair.list, file = "drug.pair.list.csv", sep = ",", row.names = FALSE)
 	write.table(drug.pair.list, file = "drug.pair.list.txt", sep = "\t", row.names = FALSE)
 	print(proc.time() - ptm)
