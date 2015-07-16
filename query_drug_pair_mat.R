@@ -51,6 +51,17 @@ QueryDrugPairList <- function (data, y) {
 		sens.pred <- QueryDrugPair(data, y, drug.pair = list.options[, i])
 		drug.pair.list[i, 3:4] <- c(sens.pred$sens.pair.pred, sens.pred$sens.pred.hsa)
 	}
+	
+	# same drug pair like c(1,1)
+	drug.pair.same <- matrix(0, nrow = row.num, ncol = 6)
+	colnames(drug.pair.same) <- colnames(drug.pair.list)
+	for (i in seq_len(row.num)) {
+		drug.pair.same[i, 1:2] <- drug.names[i]
+		drug.pair.same[i, 5:6] <- y[i]
+		sens.pred <- QueryDrugPair(data, y, drug.pair = c(i, i))
+		drug.pair.same[i, 3:4] <- c(sens.pred$sens.pair.pred, sens.pred$sens.pred.hsa)
+	}
+	drug.pair.list <- rbind(drug.pair.list, drug.pair.same)
 	write.table(drug.pair.list, file = "drug.pair.list.csv", sep = ",", row.names = FALSE)
 	write.table(drug.pair.list, file = "drug.pair.list.txt", sep = "\t", row.names = FALSE)
 	print(proc.time() - ptm)
