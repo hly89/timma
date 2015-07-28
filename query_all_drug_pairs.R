@@ -1,42 +1,18 @@
-QueryDrugPairMat <- function(data, y) {
-	# start the clock
-	ptm <- proc.time()
-    drug.names <- rownames(data)
-    drug.pair.mat <- matrix(0, nrow = nrow(data), ncol = nrow(data))
-    # find the drugs without any targets
-    drug.no.targets <- which(rowSums(as.matrix(tmp$x)) == 0)
-    drug.idx <- which(rowSums(as.matrix(tmp$x)) != 0)
-    drug.pair.mat[drug.no.targets, ] <- NA
-    drug.pair.mat[, drug.no.targets] <- NA
-    for (i in drug.idx) {
-      cat("i is ", i, "\n")
-      for (j in drug.idx) {
-        drug.pair.mat[i, j] <- QuerySingleDrugPair(data, y, c(i, j))$sens.pair.pred
-      }
-    
-    
-    }
-    rownames(drug.pair.mat) <- drug.names
-    colnames(drug.pair.mat) <- drug.names
-    write.table(drug.pair.mat, file = "drug.pair.mat.csv", sep = ",")
-	print(proc.time() - ptm)
-}
-
-QueryDrugPairMat1 <- function(data, y) {
-	# start the clock
-	ptm <- proc.time()
-    drug.names <- rownames(data)
-    row.num <- nrow(data)
-    drug.pair.mat <- matrix(0, nrow = row.num, ncol = row.num)
-    for (i in seq_len(row.num)) {
-  	  drug.pair.mat[c(i:row.num), i] <- sapply(c(i:row.num), function(x) QuerySingleDrugPair(data, y, c(i, x)))
-    }
-    rownames(drug.pair.mat) <- drug.names
-    colnames(drug.pair.mat) <- drug.names
-    write.table(drug.pair.mat, file = "drug.pair.mat.csv", sep = ",")
-	print(proc.time() - ptm)
-}
-
+#' Query the predicted sensitivities for all possible drug pairs in the data
+#'
+#' A function to query the predicted sensitivities for all possible drug pairs in the data
+#' @param data a drug-target interaction matrix. Row names are drug names and column names are target names.
+#' @param y a normalized drug sensitivity vector.
+#'
+#' @return Two files are generated:
+#' \item drug.pair.list.csv a csv file contains the prediction for all possible drug pairs 
+#' \item drug.pair.list.txt a txt file contains the prediction for all possible drug pairs
+#'
+#' @author Liye He \email{liye.he@@helsinki.fi}
+#' @examples
+#' data(tyner_interaction_binary)
+#' data(tyner_sensitivity)
+#' results <- QueryAllDrugPairs(tyner_interaction_binary, tyner_sensitivity[,1])
 QueryAllDrugPairs <- function (data, y) {
 	# start the clock
 	ptm <- proc.time()
@@ -78,3 +54,43 @@ QueryAllDrugPairs <- function (data, y) {
 	write.table(drug.pair.list, file = "drug.pair.list.txt", sep = "\t", row.names = FALSE)
 	print(proc.time() - ptm)
 }
+
+QueryDrugPairMat <- function(data, y) {
+	# start the clock
+	ptm <- proc.time()
+    drug.names <- rownames(data)
+    drug.pair.mat <- matrix(0, nrow = nrow(data), ncol = nrow(data))
+    # find the drugs without any targets
+    drug.no.targets <- which(rowSums(as.matrix(tmp$x)) == 0)
+    drug.idx <- which(rowSums(as.matrix(tmp$x)) != 0)
+    drug.pair.mat[drug.no.targets, ] <- NA
+    drug.pair.mat[, drug.no.targets] <- NA
+    for (i in drug.idx) {
+      cat("i is ", i, "\n")
+      for (j in drug.idx) {
+        drug.pair.mat[i, j] <- QuerySingleDrugPair(data, y, c(i, j))$sens.pair.pred
+      }
+    
+    
+    }
+    rownames(drug.pair.mat) <- drug.names
+    colnames(drug.pair.mat) <- drug.names
+    write.table(drug.pair.mat, file = "drug.pair.mat.csv", sep = ",")
+	print(proc.time() - ptm)
+}
+
+QueryDrugPairMat1 <- function(data, y) {
+	# start the clock
+	ptm <- proc.time()
+    drug.names <- rownames(data)
+    row.num <- nrow(data)
+    drug.pair.mat <- matrix(0, nrow = row.num, ncol = row.num)
+    for (i in seq_len(row.num)) {
+  	  drug.pair.mat[c(i:row.num), i] <- sapply(c(i:row.num), function(x) QuerySingleDrugPair(data, y, c(i, x)))
+    }
+    rownames(drug.pair.mat) <- drug.names
+    colnames(drug.pair.mat) <- drug.names
+    write.table(drug.pair.mat, file = "drug.pair.mat.csv", sep = ",")
+	print(proc.time() - ptm)
+}
+

@@ -1,3 +1,21 @@
+#' Query the predicted sensitivity for a singe drug pair
+#'
+#' A function to query the predicted sensitity for a single drug pair
+#' @param data a drug-target interaction matrix. Row names are drug names and column names are target names.
+#' @param sens a normalized drug sensitivity vector.
+#' @param drug.pair a vector with either drug names or drug index in the drug-target interaction matrix.
+#' 
+#' @return A list containing the following components:
+#' \item {sens.pair.pred} defualt predicted sensitivity for single drug pair
+#' \item {sens.drug1} the sensitivity for the first drug
+#' \item {sens.drug2} the sensitivty for the second drug
+#' \item {sens.pred.hsa} the predicted sensitivity with hsa model for single drug pair
+#'
+#' @author Liye He \email{liye.he@@helsinki.fi}
+#' @examples
+#' data(tyner_interaction_binary)
+#' data(tyner_sensitivity)
+#' results <- QuerySingleDrugPair(tyner_interaction_binary, tyner_sensitivity[,1], c(1,2))
 QuerySingleDrugPair <- function(data, sens, drug.pair = c()) {
 	if (length(drug.pair) != 2 ) {
 		stop("Error: not a pair of drugs.")

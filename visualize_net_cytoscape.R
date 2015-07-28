@@ -1,3 +1,16 @@
+#' Visualize network in Cytoscape 2.x/3.x
+#'
+#' A function to visualize the network in Cytoscape 2.x/3.x
+#' 
+#' @param graph an iGraph object. 
+#' @param mode whether to visualize the network automatically or manually. If mode is "automatic", the network is visualized automatically in Cytoscape, which requires CytoscapeRPC plugin installed beforehand. If mode is "manual", the nodes and edges attributes files are generated for loading into Cytoscape.
+#'
+#' @author Liye He \email{liye.he@@helsinki.fi}
+#' @examples
+#' \dontrun{
+#' data(graph)
+#' VisualizeNetCYT(graph)
+#'}
 VisualizeNetCYT <- function(graph, mode = "automatic") {
 	#------------------
 	# Visualization in Cytoscape 2.8/3.0
@@ -5,40 +18,29 @@ VisualizeNetCYT <- function(graph, mode = "automatic") {
 	if (!(mode %in% c("automatic", "manual"))) {
 		stop ("The mode parameter can only be either automatic or manual!")
 	}
-  # the required attributes for graph: node.fillColor, node.shape
-	nodes.num <- vcount(graph)
+    # the required attributes for graph: node.fillColor, node.shape
+	
 	# no node.fillColor attributes
 	if (is.null(V(graph)$node.fillColor)) {
-		graph <- set.vertex.attribute(graph, "node.fillColor", value = "84,84,84") # default color
+		graph <- set.vertex.attribute(graph, "node.fillColor", value = "255,0,255") # default color
 	} 
 	
 	# node shape 
-	shape.style <- c('ellipse','rectangle','triangle','diamond','hexagon','octagon','parallelogram','roundrect','vee')
-	variable.type.list <- c("timma_parental","timma_tam","timma_parental timma_tam","cnv","exp","mutation","others")
-	nodes.type <- c()
-	nodes.alteration <- V(graph)$Alterations
-	for (i in seq_len(nodes.num)) {
-	  tmp <- which(variable.type.list == nodes.alteration[i])
-	  if (length(tmp) == 0) {
-	    nodes.type[i] <- shape.style[7]
-	  } else {
-	    nodes.type[i] <- shape.style[tmp]
-	  }
+	if (is.null(V(graph)$node.shape)) {
+		graph <- set.vertex.attribute(graph, "node.shape", value = "ellipse") # default shape
 	}
-	graph <- set.vertex.attribute(graph, "node.shape", value = nodes.type)
 	
 	
 	
-	# generate edge color
-	edges.type <- E(graph)$kind
-	edges.color <- vector(mode = "character", length = length(edges.type))
-	edges.color[grep("Interaction", edges.type)] <- "0,255,0" # green edges for interaction
-	edges.color[grep("Activation", edges.type)] <- "255,0,0" # red edges for activation
-	edges.color[grep("Inhibition", edges.type)] <- "0,0,255" # blue edges for inhibition
+	# edge color
+	if (is.null(E(graph)$edge.color)) {
+		graph <- set.edge.attribute(graph, "edge.color", value = "0,255,0")
+	}
 	
-	graph <- set.edge.attribute(graph, "edge.color", value = edges.color)
+	
 	
 	# generate edge arrow
+	edges.type <- E(graph)$kind
 	edges.arrow <- vector(mode = "character", length = length(edges.type))
 	edges.arrow[grep("Interaction", edges.type)] <- "NONE" 
 	edges.arrow[grep("Activation", edges.type)] <- "ARROW" 
@@ -55,8 +57,7 @@ VisualizeNetCYT <- function(graph, mode = "automatic") {
 		graph.cyt <- igraph.to.graphNEL(graph)
 	
 		# create attributes for graphNEL
-		graph.cyt <- initNodeAttribute(graph.cyt, 'Symbol', 'char', "symbol")
-		#graph.cyt <- initNodeAttribute(graph.cyt, 'name', 'char', "symbol")	
+		graph.cyt <- initNodeAttribute(graph.cyt, 'Symbol', 'char', "symbol")	
 		graph.cyt <- initNodeAttribute(graph.cyt, 'EntrezID', 'numeric', 0)
 		graph.cyt <- initNodeAttribute(graph.cyt, 'Alterations', 'char', 'exp')
 		graph.cyt <- initNodeAttribute(graph.cyt, 'node.fillColor', 'char', '84,84,84')
@@ -106,7 +107,6 @@ VisualizeNetCYT <- function(graph, mode = "automatic") {
 		# the edge list in Symbol
 		nodes.entrez <- V(graph)$EntrezID
 		nodes.symbol <- V(graph)$Symbol
-		#edge.list.symbol <- apply(edge.list.entrez, c(1,2), function(x) nodes.symbol[which(nodes.entrez == x)])
 		edges.attr.table <- cbind(edge.list.symbol, edges.color, E(graph)$weight, edges.arrow)
 		colnames(edges.attr.table) <- c("source", "target", "edge.color", "edge.Width", "edge.targetArrowShape")
 		write.table(edges.attr.table, file = "edge.attributes.cytoscape.txt", row.names = FALSE, col.names = TRUE, quote = FALSE, sep = "\t")
