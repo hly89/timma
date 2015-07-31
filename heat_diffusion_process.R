@@ -13,20 +13,21 @@ heatDiffusionProcess <- function(net, heat, t) {
 
 	idx <- seq(0.1, t*0.1, 0.1)
 	# nrow(net) : num of nodes
-	heat.info <- matrix(0, nrow = nrow(net), ncol = t+1)
+	nodes.num <- nrow(net)
+	heat.info <- matrix(0, nrow = nodes.num, ncol = t+1)
 	heat.info[ , 1] <- heat
 	for (i in seq_len(t)) {
 		heat.info[ , i+1] <- as.vector(heat.info[ , i] %*% expm(idx[i]*net))
 	}
 	# plot the heat changes for each nodes
-	heat.change.mat <- matrix(0, nrow = 10*(t+1), ncol = 3)
+	heat.change.mat <- matrix(0, nrow = nodes.num*(t+1), ncol = 3)
     node.list <- c()
     for (i in 1:nrow(net)) {
       node.list <- c(node.list, rep(i, t+1))
     }
     heat.change.mat[ , 1] <- node.list
     heat.change.mat[ , 2] <- as.vector(t(heat.info))
-    heat.change.mat[ , 3] <- rep(c(1:51), 10)
+    heat.change.mat[ , 3] <- rep(c(1:(t + 1)), nodes.num)
     colnames(heat.change.mat) <- c("Node", "Heat", "Time")  
     heat.change.df <- data.frame(heat.change.mat)
     heat.change.df$Node<-as.factor(heat.change.df$Node)
