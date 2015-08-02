@@ -1,4 +1,23 @@
-heatDiffusionProcess <- function(net, heat, t) {
+#' Heat diffusion process function
+#'
+#' A function to implement the heat diffusion process algorithm
+#' @param net an adjacency matrix of each node in the undirected network.
+#' @param heat a vector of initial heat for each node.
+#' @param t an integer to specify the number of iterations.
+#' @param alpha the thermal conductivity.
+#' @return a plot of the heat of each node at each iteration and a list of the following components:
+#' \item steady.state a vector of the heat of each node at steady state.
+#' \item heat.change a matrix of the heat of each node at each iteration.
+#' @author Liye He \email{liye.he@@helsinki.fi}
+#' @references Ma, Hao and Yang, Haixuan and Lyu, Michael R. and King, Irwin. 
+#' Mining Social Networks Using Heat Diffusion Processes for Marketing Candidates Selection.
+#' Proceedings of the 17th ACM Conference on Information and Knowledge Management, 2008, p233-242.
+#' @examples
+#' g <- sample_growing(10, 1, directed = FALSE, citation = TRUE)
+#' net <- as.matrix(get.adjacency(g))
+#' heat <- c(1,0,0,0,1,0,1,0,1,0)
+#' results <- heatDiffusionProcess(net, heat, 50)
+heatDiffusionProcess <- function(net, heat, t = 50, alpha = 1) {
 	# net should be adjaceny matrix
 	
 	# get the transition matrix
@@ -17,7 +36,7 @@ heatDiffusionProcess <- function(net, heat, t) {
 	heat.info <- matrix(0, nrow = nodes.num, ncol = t+1)
 	heat.info[ , 1] <- heat
 	for (i in seq_len(t)) {
-		heat.info[ , i+1] <- as.vector(heat.info[ , i] %*% expm(idx[i]*net))
+		heat.info[ , i+1] <- as.vector(heat %*% expm(alpha*idx[i]*net))
 	}
 	# plot the heat changes for each nodes
 	heat.change.mat <- matrix(0, nrow = nodes.num*(t+1), ncol = 3)
