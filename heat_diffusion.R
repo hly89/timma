@@ -18,7 +18,7 @@
 #' heat <- c(1,0,0,0,1,0,1,0,1,0)
 #' results <- heatDiffusion(net, heat, 50)
 
-heatDiffusion <- function(net, heat, t, method = "probS") {
+heatDiffusion <- function(net, heat, t = 50, method = "probS") {
   if (!(method %in% c("probS", "heatS"))) {
      stop("Parameter method can only be either probS or heatS")
   }
