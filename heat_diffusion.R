@@ -1,6 +1,6 @@
 #' Heat diffusion functions
 #'
-#' A function to implement heatS and probS algorithms for undirected network.
+#' A function to implement heatS and probS algorithms for undirected networks.
 #' @param net an adjacency matrix of each node in the undirected network.
 #' @param heat a vector of initial heat for each node.
 #' @param t an integer to specify the number of iterations
@@ -13,10 +13,17 @@
 #' Solving the apparent diversity-accuracy dilemma of recommender systems. Proceedings of the National Academy of Sciences 
 #' 107(10):4511--4515 (2010)
 #' @examples
-#' g <- sample_growing(10, 1, directed = FALSE, citation = TRUE)
+#' library(igraph) # v1.0.1 or later
+#' library(ggplot2)
+#' # g <- sample_growing(10, 1, directed = FALSE, citation = TRUE)
+#' n <- 100
+#' g <- sample_pa(n,directed=F) # scale-free network
 #' net <- as.matrix(get.adjacency(g))
-#' heat <- c(1,0,0,0,1,0,1,0,1,0)
-#' results <- heatDiffusion(net, heat, 50)
+#' # heat <- c(1,0,0,0,1,0,1,0,1,0)
+#' heat <- rep(0,n)
+#' heat[sample(1:n, 1)] = 1
+#' results <- heatDiffusion(net, heat, 100, method="heatS")
+
 
 heatDiffusion <- function(net, heat, t = 50, method = "probS") {
   if (!(method %in% c("probS", "heatS"))) {
@@ -57,14 +64,14 @@ heatDiffusion <- function(net, heat, t = 50, method = "probS") {
   
   heat.change.df <- data.frame(heat.change.mat)
   heat.change.df$Node<-as.factor(heat.change.df$Node)
-  ggplot(data = heat.change.df, aes(x = Time, y = Heat, group = Node, color = Node)) + geom_line() + geom_point()
+  fig = ggplot(data = heat.change.df, aes(x = Time, y = Heat, group = Node, color = Node)) + geom_line() + geom_point()
   if (method == "probS") {
   	ggsave(filename = "probS.png")
   } else {
   	ggsave(filename = "heatS.png")
   }
   
-  return(list(steady.state = mu, heat.change = heat.info))
+  return(list(steady.state = sum(heat)*mu, heat.change = heat.info, fig = fig))
 }
 
 

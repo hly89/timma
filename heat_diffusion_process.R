@@ -13,16 +13,24 @@
 #' Mining Social Networks Using Heat Diffusion Processes for Marketing Candidates Selection.
 #' Proceedings of the 17th ACM Conference on Information and Knowledge Management, 2008, p233-242.
 #' @examples
-#' g <- sample_growing(10, 1, directed = FALSE, citation = TRUE)
+#' library(igraph) # v1.0.1 or later
+#' library(ggplot2)
+#' library(Matrix)
+#' # g <- sample_growing(10, 1, directed = FALSE, citation = TRUE)
+#' n <- 100
+#' g <- sample_pa(n,directed=F) # scale-free network
 #' net <- as.matrix(get.adjacency(g))
-#' heat <- c(1,0,0,0,1,0,1,0,1,0)
+#' # heat <- c(1,0,0,0,1,0,1,0,1,0)
+#' heat <- rep(0,n)
+#' heat[sample(1:n, 1)] = 1
 #' results <- heatDiffusionProcess(net, heat, 50)
+
 heatDiffusionProcess <- function(net, heat, t = 50, alpha = 1) {
 	# net should be adjaceny matrix
 	
 	# get the transition matrix
-	net <- net - diag(rowSums(net))
-	trans.mat <- expm(net)
+	net2 <- net - diag(rowSums(net))
+	trans.mat <- expm(net2)
 	# get the steady-state vector
 	n <- ncol(trans.mat)
 	a <- t(trans.mat-diag(n))
@@ -32,11 +40,11 @@ heatDiffusionProcess <- function(net, heat, t = 50, alpha = 1) {
 
 	idx <- seq(0.1, t*0.1, 0.1)
 	# nrow(net) : num of nodes
-	nodes.num <- nrow(net)
+	nodes.num <- nrow(net2)
 	heat.info <- matrix(0, nrow = nodes.num, ncol = t+1)
 	heat.info[ , 1] <- heat
 	for (i in seq_len(t)) {
-		heat.info[ , i+1] <- as.vector(heat %*% expm(alpha*idx[i]*net))
+		heat.info[ , i+1] <- as.vector(heat %*% expm(alpha*idx[i]*net2))
 	}
 	# plot the heat changes for each nodes
 	heat.change.mat <- matrix(0, nrow = nodes.num*(t+1), ncol = 3)
@@ -50,7 +58,7 @@ heatDiffusionProcess <- function(net, heat, t = 50, alpha = 1) {
     colnames(heat.change.mat) <- c("Node", "Heat", "Time")  
     heat.change.df <- data.frame(heat.change.mat)
     heat.change.df$Node<-as.factor(heat.change.df$Node)
-	ggplot(data = heat.change.df, aes(x = Time, y = Heat, group = Node, color = Node)) + geom_line() + geom_point()
-	ggsave(filename = "heatDP.png")
-	return(list(steady.state = mu, heat.change = heat.info))
+	  fig = ggplot(data = heat.change.df, aes(x = Time, y = Heat, group = Node, color = Node)) + geom_line() + geom_point()
+	  ggsave(filename = "heatDP.png")
+	  return(list(steady.state = sum(heat)*mu, heat.change = heat.info, fig = fig))
 }
