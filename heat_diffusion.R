@@ -32,10 +32,12 @@ heatDiffusion <- function(net, heat, t = 50, method = "probS") {
   nodes.num <- nrow(net)
   heat.info <- matrix(0, nrow = nodes.num, ncol = (t + 1))
   heat.info[,1] <- heat
+  
+  degree = colSums(net)
   if (method == "probS") {
-  	trans.mat <- net/rowSums(net) 
+  	trans.mat <- t(net)/rowSums(net) 
   } else {
-  	trans.mat <- t(net/rowSums(net))
+  	trans.mat <- t(t(net)/rowSums(net))
   }
   
   # get the steady-state vector
