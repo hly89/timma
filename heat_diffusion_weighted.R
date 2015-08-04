@@ -34,7 +34,7 @@ heatDiffusionWeighted <- function(graph, heat, t = 50) {
   gene.exp.table <- t(matrix(rep(gene.exp, nodes.num), nodes.num, nodes.num))
   net <- as.matrix(get.adjacency(graph))
   net.tmp <- gene.exp.table * net
-  net.tmp <- net.tmp / weight
+  net.tmp <- net.tmp / gene.exp
   trans.mat <- net.tmp / rowSums(net.tmp)
   # get the steady-state vector
   n <- ncol(trans.mat)
@@ -44,7 +44,7 @@ heatDiffusionWeighted <- function(graph, heat, t = 50) {
   mu<-qr.solve(a,b)
   
   for (i in seq_len(t)) {
-    heat.info[ , i+1] <- heat.info[ , i] %*% trans.mat
+    heat.info[ , i+1] <- as.vector(heat.info[ , i] %*% trans.mat)
   }
   
   
