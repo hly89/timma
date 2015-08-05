@@ -1,7 +1,7 @@
 #' Heat diffusion functions
 #'
-#' A function to implement heatS and probS algorithms for undirected networks.
-#' @param net an adjacency matrix of each node in the undirected network.
+#' A function to implement heatS and probS algorithms for undirected/directed networks.
+#' @param graph an igraph object
 #' @param heat a vector of initial heat for each node.
 #' @param t an integer to specify the number of iterations
 #' @param method a string to specify the heat diffusion algorithm. In heatS algorithm, each node receives the mean amouont of the heat possessed by its neighboring nodes. In probS algorithm, heat possessed by each node is evenly distributed to its neighboring nodes. In probS, the total heat remains constant while heat is not so.
@@ -17,27 +17,43 @@
 #' library(ggplot2)
 #' # g <- sample_growing(10, 1, directed = FALSE, citation = TRUE)
 #' n <- 100
-#' g <- sample_pa(n,directed=F) # scale-free network
-#' net <- as.matrix(get.adjacency(g))
+#' g <- sample_pa(n,directed=T) # scale-free network
 #' # heat <- c(1,0,0,0,1,0,1,0,1,0)
 #' heat <- rep(0,n)
 #' heat[sample(1:n, 1)] = 1
-#' results <- heatDiffusion(net, heat, 100, method="heatS")
+#' results <- heatDiffusion(g, heat, 100, method="heatS")
 
 
-heatDiffusion <- function(net, heat, t = 50, method = "probS") {
+heatDiffusion <- function(graph, heat, t = 50, method = "probS") {
+  # graph is an igraph object
+  
   if (!(method %in% c("probS", "heatS"))) {
      stop("Parameter method can only be either probS or heatS")
   }
-  nodes.num <- nrow(net)
+  nodes.num <- vcount(graph)
   heat.info <- matrix(0, nrow = nodes.num, ncol = (t + 1))
   heat.info[,1] <- heat
   
-  degree = colSums(net)
+  net <- as.matrix(get.adjacency(graph))
   if (method == "probS") {
-  	trans.mat <- t(net)/rowSums(net) 
+    if (is_directed(graph)) {
+      trans.mat <- net/degree(graph, mode = "out")
+      # get nan idx
+      nan.idx <- which(is.nan(trans.mat) == TRUE)
+      trans.mat[nan.idx] <- 0
+    } else {
+      trans.mat <- net/degree(graph)
+    }
+  	
   } else {
-  	trans.mat <- t(t(net)/rowSums(net))
+  	if (is_directed(graph)) {
+  	  trans.mat <- t(t(net)/degree(graph, mode = "in"))
+  	  # get nan idx
+  	  nan.idx <- which(is.nan(trans.mat) == TRUE)
+  	  trans.mat[nan.idx] <- 0
+  	} else {
+  	  trans.mat <- t(net/degree(graph))
+  	}
   }
   
   # get the steady-state vector
