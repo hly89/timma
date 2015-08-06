@@ -246,7 +246,8 @@ RunSffs <- function(data, sens, sp = 1, k.max = 8, loo = TRUE, verbosity = FALSE
     }
     
     target.selected <- which(target.list.tmp == 1)
-    data.filtered <- unique(data[, target.selected], MARGIN=2)
+    #data.filtered <- unique(data[, target.selected], MARGIN = 2)
+    data.filtered <- data[, target.selected]
 	
 	
 	if (class == 2) {
