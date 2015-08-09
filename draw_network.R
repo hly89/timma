@@ -13,16 +13,16 @@
 #' \dontrun{
 #' data(tyner_interaction_binary)
 #' data(tyner_sensitivity)
-#' y<-tyner_sensitivity[,1]
-#' k_selected<-sffs(tyner_interaction_binary, y)$k_sel
-#' x<-data.frame(tyner_interaction_binary[, k_selected])
+#' y <- tyner_sensitivity[, 1]
+#' results <- RunSffs(tyner_interaction_binary, y)
+#' x < -data.frame(results$data.selected)
 #' #binarize the sensitivity data
-#' one<-which(y>0.5)
-#' zero<-which(y<=0.5)
-#' SENS<-y
-#' SENS[one]<-1
-#' SENS[zero]<-0
-#' data<-cbind(x, SENS)
+#' one <- which(y > 0.5)
+#' zero <- which(y <= 0.5)
+#' SENS <- y
+#' SENS[one] <- 1
+#' SENS[zero] <- 0
+#' data <- cbind(x, SENS)
 #' DrawNetwork(data)
 #' }
 
@@ -31,10 +31,10 @@ DrawNetwork <- function(data) {
     # column names must be upper case and contains only letters!
     col.names.actual <- dimnames(data)[[2]]
     col.names <- unlist(lapply(seq(1:length(col.names.actual)),function(i) paste(LETTERS[i],LETTERS[i],sep="")))
-    colnames(data) = col.names
+    colnames(data) <- col.names
     dimnames(data)[[2]][length(col.names)] <- "SENS"
     
-    boolean <- eqmcc(data, outcome = "SENS",row.dom=F,omit=1)
+    boolean <- eqmcc(data, outcome = "SENS",row.dom = F,omit = 1)
     #boolean$essential
     components.num <- length(boolean$essential)
     expressions <- sapply(boolean$essential, function(x) strsplit(x, "\\*"))
@@ -55,10 +55,10 @@ DrawNetwork <- function(data) {
     }
     
     # remove duplicated compact expressions
-    expressions.compact = expressions.compact[which(duplicated(expressions.compact)==F)]
+    expressions.compact <- expressions.compact[which(duplicated(expressions.compact)==F)]
     
     # change the labels back to the target names
-    expressions.compact = lapply(expressions.compact,function(i) col.names.actual[grep(paste(i,collapse="|"),col.names)])
+    expressions.compact <- lapply(expressions.compact,function(i) col.names.actual[grep(paste(i,collapse="|"),col.names)])
     
     components.num <- length(expressions.compact)
     components.height <- lapply(expressions.compact, length)
@@ -67,7 +67,7 @@ DrawNetwork <- function(data) {
     seg <- 1 # the width for one component
     seg.in <- 0.2 # the width of the small line within the components
     seg.out <-0.2 # the width between the components
-    scale = mean(unlist(lapply(expressions.compact,function(x) max(nchar(x))/3)))
+    scale <- mean(unlist(lapply(expressions.compact,function(x) max(nchar(x))/3)))
     
     figure.height <- max(unlist(components.height))
     figure.width <- components.num * (seg*scale + seg.out)
@@ -111,19 +111,19 @@ DrawNetwork <- function(data) {
     dev.off()
     
     # two terminal version, output to cytoscape nnf file
-    cat(c(),file="targetInhibitionNetwork.nnf")
+    cat(c(),file = "targetInhibitionNetwork.nnf")
     for (i in 1:components.num){
       write(paste(c('TargetInhibitionNetwork',paste('M',i,sep="")),collapse="\t"),file="targetInhibitionNetwork.nnf",sep="\n",append=T)
     }
     
-    Terminals <- paste("T",1:2, sep="") # the number of terminals for the SIF format
+    Terminals <- paste("T",1:2, sep = "") # the number of terminals for the SIF format
     
     for (i in 1:components.num){
       for (j in expressions.compact[[i]]){
-      lines1 <-paste(c(paste('M',i,sep=""),Terminals[1],"pp",j), collapse="\t")
-      lines2 <-paste(c(paste('M',i,sep=""),j,"pp",Terminals[2]), collapse="\t")
-      write(lines1,file="targetInhibitionNetwork.nnf",sep="\n",append=T)
-      write(lines2,file="targetInhibitionNetwork.nnf",sep="\n",append=T)
+      lines1 <-paste(c(paste('M',i,sep = ""),Terminals[1],"pp",j), collapse = "\t")
+      lines2 <-paste(c(paste('M',i,sep = ""),j,"pp",Terminals[2]), collapse = "\t")
+      write(lines1,file="targetInhibitionNetwork.nnf",sep = "\n",append = T)
+      write(lines2,file="targetInhibitionNetwork.nnf",sep = "\n",append = T)
       }
     } 
     cat()

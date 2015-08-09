@@ -21,13 +21,13 @@
 #' @examples
 #' data(tyner_interaction_binary)
 #' data(tyner_sensitivity)
-#' results<-RunTimmaFullBin(tyner_interaction_binary[, 1:6], tyner_sensitivity[,1])
+#' results <- RunTimmaFullBin(tyner_interaction_binary[, 1:6], tyner_sensitivity[, 1])
 
 RunTimmaFullBin <- function(data, sens, loo = TRUE, averaging = "one.sided") {
     # parameter 1: data, drug with selected target profile    
     # parameter 2: sens, the actual efficacy for the drugs    
     # parameter 3: loo, flag for applying Leave-one-out or not
-	# paramtert 4: averaging, the averaging method
+	  # paramtert 4: averaging, the averaging method
 	
 	# if the averaging method parameter is correct
 	if (!(averaging %in% c("one.sided", "two.sided"))) {

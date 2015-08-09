@@ -53,32 +53,35 @@ timma <- function(x, y, sp = 1, k.max = 5, filtering = FALSE, class = 2, averagi
   
   # preprocessing the data: merge the same colomns and delete all zeros colomns
   list.del <- c()
-  name.merged <- c() # the same length as the number of columns
+  name.merged <- kinase.names # the same length as the number of columns
 
-  list.ones <- rep(1, nrow(x))              
+  list.ones <- rep(1, nrow(x))  
   for (i in 1:ncol(x)){
-    if (i %in% list.del) {
-      # if the i-th colomn is in the delete list
-      name.merged <- c(name.merged, kinase.names[i])
-    } else {
+    if (!(i %in% list.del)) {
       # detect the col with all zeros
       if (list.ones %*% x[,i] == 0) {
         list.del <- c(list.del, i)
-        name.merged <- c(name.merged, kinase.names[i])
+        # the name for this column keeps the same
       } else {
         col.same <- FindSameCol(x, x[,i])
-        name.merged <- c(name.merged, paste(kinase.names[which(col.same == 1)], collapse = ";"))
-        list.del <- c(list.del,which(col.same==1)[-1])
+        # index for the same col
+        idx.samecol <- which(col.same == 1)
+        # change the col name in name.merged to the combined name 
+        name.comb <- paste(kinase.names[idx.samecol], collapse = ";")
+        name.merged[idx.samecol] <- name.comb
+        list.del <- c(list.del,idx.samecol[-1])
       }
     }
     
   }
-
-  x<-x[,-list.del]
-  name.merged <- name.merged[-list.del]
-  dimnames(x)[[2]] <- name.merged
-  kinase.names <- name.merged
   
+
+  if (length(list.del) != 0) {
+    x <- x[ , -list.del]
+    name.merged <- name.merged[-list.del]
+    dimnames(x)[[2]] <- name.merged
+    kinase.names <- name.merged
+  }
   cat("----------------Start Running TIMMA----------------------------- \n") 
   float<-RunSffs(x, y, sp, k.max, loo = TRUE, verbosity, averaging, class, weighted, filtering, fixed)  
   cat("----------------Complete running TIMMA model-------------------- \n")
@@ -94,68 +97,74 @@ timma <- function(x, y, sp = 1, k.max = 5, filtering = FALSE, class = 2, averagi
   #target.selected.names <- FindSameSet(x, target.selected, kinase.names)
   #data.selected <- x[, target.selected]
   data.selected <- data.frame(float$data.selected)
-  target.selected.names <- dimnames(float$data.selected)[[2]]
+  #target.selected.names <- dimnames(float$data.selected)[[2]]
+  target.selected.names <- float$target.selected
   
-  if (k.max > 1) {  
-    target.selected.res <- cbind(data.selected, y, float$timma$prediction)
-    dimnames(data.selected)[[2]] <- target.selected.names
-    dimnames(target.selected.res)[[2]] <- c(target.selected.names, "sensitivity", "LOO sensitivity")
-    write.table(target.selected.res, file = "selectedTargets.csv", sep = ",", col.names = NA)
-  } else {
-    data.selected <- rbind(target.selected.names, data.selected)
-  }
+  #if (k.max > 1) {  
+  target.selected.res <- cbind(data.selected, y, float$timma$prediction)
+  dimnames(data.selected)[[2]] <- target.selected.names
+  dimnames(target.selected.res)[[2]] <- c(target.selected.names, "sensitivity", "LOO sensitivity")
+  write.table(target.selected.res, file = "selectedTargets.csv", sep = ",", col.names = NA)
+  #} else {
+    #data.selected <- rbind(target.selected.names, data.selected)
+  #}
   cat("----------------Saving selectedTargets.csv---------------------- \n")
-  
-  # write Timma
-  if (class == 2) {
-    graycode <- GetGrayCodeMat(length(target.selected))
-    graycode.names <- GetGrayCodeNames(length(target.selected), target.selected.names, graycode$graycode.row, graycode$graycode.col)
-    nr <- graycode.names$graycode.names.row
-    nc <- t(graycode.names$graycode.names.col)
-    timma.row <- nrow(nr) + nrow(nc)
-    timma.col <- ncol(nr) + ncol(nc)
-    timma <- array("", dim = c(timma.row, timma.col))
-    timma[(nrow(nc) + 1):timma.row, 1:ncol(nr)] <- nr
-    timma[1:nrow(nc), (ncol(nr) + 1):timma.col] <- nc
-    timma[(nrow(nc) + 1):timma.row, (ncol(nr) + 1):timma.col] <- float$timma$efficacy.mat
-    write.table(timma, file = "predictedSensitivities.csv", sep = ",", col.names = FALSE, row.names = FALSE)
-    cat("----------------Saving predictedSensitivities.csv--------------- \n")
-    
-    target.comb.rank <- RankTargetComb(data.selected, timma)
-    write.table(target.comb.rank, file = "predictedTargetScoring.csv",sep=",",row.names = FALSE)
-    cat("----------------Saving predictedTargetScoring.csv--------------------- \n")
-    
-    drug.comb.rank <- RankDrugComb(data.selected, timma, y)
-    write.table(drug.comb.rank, file = "predictedDrugScoring.csv", sep = ",", row.names = FALSE)
-    cat("----------------Saving predictedDrugScoring.csv--------------------- \n")
-    
-    # write the R image
-    save(x,data.selected, timma, y, file="result.RData")
-    cat("----------------Saving result.RData---------------------- \n")
-    
-    #prediction.loo <- float$timma$prediction
-    if(use == "observed"){
-      prediction.loo <- y
-    }else if(use == "predicted"){
-      prediction.loo <- float$timma$prediction
-    }else{
-      stop("Parameter use must be either observed or predicted")
+  if (length(target.selected.names) > 1) {
+    # write Timma
+    if (class == 2) {
+      graycode <- GetGrayCodeMat(length(target.selected))
+      graycode.names <- GetGrayCodeNames(length(target.selected), target.selected.names, graycode$graycode.row, graycode$graycode.col)
+      nr <- graycode.names$graycode.names.row
+      nc <- t(graycode.names$graycode.names.col)
+      timma.row <- nrow(nr) + nrow(nc)
+      timma.col <- ncol(nr) + ncol(nc)
+      timma <- array("", dim = c(timma.row, timma.col))
+      timma[(nrow(nc) + 1):timma.row, 1:ncol(nr)] <- nr
+      timma[1:nrow(nc), (ncol(nr) + 1):timma.col] <- nc
+      timma[(nrow(nc) + 1):timma.row, (ncol(nr) + 1):timma.col] <- float$timma$efficacy.mat
+      write.table(timma, file = "predictedSensitivities.csv", sep = ",", col.names = FALSE, row.names = FALSE)
+      cat("----------------Saving predictedSensitivities.csv--------------- \n")
+      
+      target.comb.rank <- RankTargetComb(data.selected, timma)
+      write.table(target.comb.rank, file = "predictedTargetScoring.csv",sep=",",row.names = FALSE)
+      cat("----------------Saving predictedTargetScoring.csv--------------------- \n")
+      
+      drug.comb.rank <- RankDrugComb(data.selected, timma, y)
+      write.table(drug.comb.rank, file = "predictedDrugScoring.csv", sep = ",", row.names = FALSE)
+      cat("----------------Saving predictedDrugScoring.csv--------------------- \n")
+      
+      # write the R image
+      save(x,data.selected, timma, y, file="result.RData")
+      cat("----------------Saving result.RData---------------------- \n")
+      
+      #prediction.loo <- float$timma$prediction
+      if(use == "observed"){
+        prediction.loo <- y
+      }else if(use == "predicted"){
+        prediction.loo <- float$timma$prediction
+      }else{
+        stop("Parameter use must be either observed or predicted")
+      }
+      
+      one<-which(prediction.loo>0.5)
+      zero<-which(prediction.loo<=0.5)
+      SENS<-prediction.loo
+      SENS[one]<-1
+      SENS[zero]<-0
+      
+      draw.data<-cbind(data.selected, SENS)
+      DrawNetwork(draw.data)
+      cat("----------------Saving targetInhibitionNetwork.pdf-------------- \n")
+      cat("----------------Saving targetInhibitionNetwork.nnf-------------- \n")
     }
     
-    one<-which(prediction.loo>0.5)
-    zero<-which(prediction.loo<=0.5)
-    SENS<-prediction.loo
-    SENS[one]<-1
-    SENS[zero]<-0
-   
-    draw.data<-cbind(data.selected, SENS)
-    DrawNetwork(draw.data)
-    cat("----------------Saving targetInhibitionNetwork.pdf-------------- \n")
-    cat("----------------Saving targetInhibitionNetwork.nnf-------------- \n")
+    dir.current <- getwd()
+    cat("Analysis finished. All the results are saved in", dir.current)
+  } else {
+    dir.current <- getwd()
+    cat("Less than 2 targets are selected. All the results are saved in", dir.current)
   }
   
-  dir.current <- getwd()
-  cat("Analysis finished. All the results are saved in", dir.current)
 
   return(list(data = x, data.selected = data.selected, prediction = float, sensitivity = y))
 } 

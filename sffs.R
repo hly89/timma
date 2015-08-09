@@ -40,7 +40,7 @@
 #' \dontrun{
 #' data(tyner_interaction_binary)
 #' data(tyner_sensitivity)
-#' results<-RunSffs(tyner_interaction_binary, tyner_sensitivity[, 1])
+#' results <- RunSffs(tyner_interaction_binary, tyner_sensitivity[, 1])
 #' }
 
 RunSffs <- function(data, sens, sp = 1, k.max = 8, loo = TRUE, verbosity = FALSE, averaging="one.sided", class = 2, weighted = FALSE, filtering = FALSE, fixed = c()) {	
@@ -247,7 +247,7 @@ RunSffs <- function(data, sens, sp = 1, k.max = 8, loo = TRUE, verbosity = FALSE
     
     target.selected <- which(target.list.tmp == 1)
     #data.filtered <- unique(data[, target.selected], MARGIN = 2)
-    data.filtered <- data[, target.selected]
+    data.filtered <- as.matrix(data[, target.selected])
 	
 	
 	if (class == 2) {
@@ -256,7 +256,7 @@ RunSffs <- function(data, sens, sp = 1, k.max = 8, loo = TRUE, verbosity = FALSE
 		timma <- RunTimma(data.filtered, sens, loo, averaging, class, weighted)
 	}
     
-    target.selected <- match(dimnames(data.filtered)[[2]],dimnames(data)[[2]])
-    
+    #target.selected <- match(dimnames(data.filtered)[[2]],dimnames(data)[[2]])
+    target.selected <- dimnames(data)[[2]][target.selected]
     return(list(timma = timma, target.selected = target.selected, data.selected = data.filtered))
 } 

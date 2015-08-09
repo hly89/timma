@@ -16,10 +16,11 @@
 #' \dontrun{
 #' data(tyner_interaction_binary)
 #' data(tyner_sensitivity)
-#' k_select<-sffsBinary(tyner_interaction_binary, tyner_sensitivity[, 1])$k_sel
-#' gc_timma<-GetGrayCodeMat(length(k_select))
-#' select_kinase_names<-dimnames(tyner_interaction_binary)[[2]][k_select]
-#' gc_names<-GetGrayCodeNames(length(k_select), select_kinase_names, gc_timma$graycode.row, gc_timma$graycode.col)
+#' results <- RunSffs(tyner_interaction_binary, tyner_sensitivity[, 1])
+#' target.num <- length(results$target.selected)
+#' gc.timma <- GetGrayCodeMat(target.num)
+#' target.names <- results$target.selected
+#' gc.names <- GetGrayCodeNames(target.num, target.names, gc.timma$graycode.row, gc.timma$graycode.col)
 #' }
 GetGrayCodeNames <- function(target.num, names, graycode.row, graycode.col) {
     # parameter target.num: the number of how many selected kinases    
