@@ -1,18 +1,25 @@
 #' Predicting drug sensitivity with binary drug-target interaction data
 #' 
-#' A function to predict the drug sensitivity with binary drug-target interaction data using the 
-#' one.sided TIMMA model
+#' A function to predict the drug sensitivity with binary drug-target interaction data 
 #' 
 #' @param data the drug-target interaction data. See \code{\link{timma}}.
 #' @param sens a drug sensitivity vector.
 #' @param loo a logical value indicating whether to use the leave-one-out cross-validation in the model
 #' selection process. By default, loo = TRUE. 
+#' @param averaging a parameter to specify which one of the averaging algorithms will be applied in the model construction. 
+#' By default, averaging = "one.sided", which is the original model construction algorithm. When averaging = "two.sided", 
+#' a modified averaging algorithm will be used. These two variants only differ for the case where the minimization and 
+#' maximization rules are not simultaneously satisfied. For example, for a queried target set if the supersets but not the 
+#' subsets can be found in the training data, the one.sided algorithm will take the prediction from the averages on the 
+#' supersets sensitivities using the minimization rule. The two.sided algorithm, however, will lower the predicted 
+#' sensitivity by averaging it with 0, which is the theoretical lower boundary of the sensitivities that could be 
+#' obtained in the subsets.
 #' @return A list containing the following components:
 #' \item{efficacy.mat}{the predicted efficacy matrix}
 #' \item{error}{the prediction errors}
 #' \item{prediction}{predicted drug sensitivity}
-#' The difference between \code{\link{timmaModel}} and \code{\link{timmaBinary}} is \code{\link{timmaModel}} 
-#' returns the predicted efficacy matrix of all possible target combinations while \code{\link{timmaBinary}}
+#' The difference between \code{\link{RunTimmaFullBin}} and \code{\link{RunTimma}} is \code{\link{RunTimmaFullBin}} 
+#' returns the predicted efficacy matrix of all possible target combinations while \code{\link{RunTimma}}
 #' not.
 #' @author Liye He \email{liye.he@@helsinki.fi} 
 #' @references Tang J, Karhinen L, Xu T, Szwajda A, Yadav B, Wennerberg K, Aittokallio T. 
