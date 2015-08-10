@@ -6,7 +6,7 @@
 #' @param t an integer to specify the number of iterations
 #' @param method a string to specify the heat diffusion algorithm. In heatS algorithm, each node receives the mean amouont of the heat possessed by its neighboring nodes. In probS algorithm, heat possessed by each node is evenly distributed to its neighboring nodes. In probS, the total heat remains constant while heat is not so.
 #' @return a plot of the heat of each node at each iteration and a list of the following components:
-#' \item steady.state a vector of the heat of each node at steady state.
+#' \item steady.state a vector of the heat of each node at steady state if the steady state can be determined.
 #' \item heat.change a matrix of the heat of each node at each iteration.
 #' @author Liye He \email{liye.he@@helsinki.fi}
 #' @references T. Zhou, Z. Kuscsik, J.G. Liu, M. Medo, J.R. Wakeling, and Y.C. Zhang.
@@ -59,9 +59,15 @@ heatDiffusion <- function(graph, heat, t = 50, method = "probS") {
   # get the steady-state vector
   n <- ncol(trans.mat)
   a <- t(trans.mat-diag(n))
-  a <- rbind(a, rep(1,n))
-  b <- c(rep(0,n), 1)
-  mu<-qr.solve(a,b)
+  a.det <- det(a)
+  if (a.det == 0) {
+    cat("No steady state vector can be determined. \n")
+  } else {
+    a <- rbind(a, rep(1,n))
+    b <- c(rep(0,n), 1)
+    mu<-qr.solve(a,b)
+  }
+  
 
   for (i in seq_len(t)) {
     heat.info[ , i+1] <- heat.info[ , i] %*% trans.mat
@@ -89,7 +95,12 @@ heatDiffusion <- function(graph, heat, t = 50, method = "probS") {
   	ggsave(filename = "heatS.png")
   }
   
-  return(list(steady.state = sum(heat)*mu, heat.change = heat.info, fig = fig))
+  if (a.det == 0) {
+    return(list(heat.change = heat.info, fig = fig))
+  } else {
+    return(list(steady.state = sum(heat)*mu, heat.change = heat.info, fig = fig))
+  }
+  
 }
 
 
