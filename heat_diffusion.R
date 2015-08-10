@@ -59,14 +59,25 @@ heatDiffusion <- function(graph, heat, t = 50, method = "probS") {
   # get the steady-state vector
   n <- ncol(trans.mat)
   a <- t(trans.mat-diag(n))
-  a.det <- det(a)
-  if (a.det == 0) {
-    cat("No steady state vector can be determined. \n")
-  } else {
-    a <- rbind(a, rep(1,n))
+  a <- rbind(a, rep(1,n))
+  # check if a is a square matrix
+  a.tmp <- unique(a)
+  if (ncol(a.tmp) == nrow(a.tmp)) { # a square matrix
+    a.det <- det(a.tmp)
+    # check if singular matrix
+    if (a.det == 0) {
+      # singluar matrix
+      cat("No steady state vector can be determined! \n")
+    } else {
+      # nonsingluar matrix
+      b <- c(rep(0,n), 1)
+      mu<-qr.solve(a,b)
+    }
+  } else { # not a square matrix
     b <- c(rep(0,n), 1)
     mu<-qr.solve(a,b)
   }
+  
   
 
   for (i in seq_len(t)) {

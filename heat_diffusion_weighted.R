@@ -16,11 +16,11 @@
 #' library(igraph) # v1.0.1 or later
 #' library(ggplot2)
 #' n <- 100
-#' g <- sample_pa(n,directed=F) # scale-free network
-#' gene.exp <- runif(100, 0.1, 100)
+#' g <- sample_pa(n,directed = FALSE) # scale-free network
+#' gene.exp <- runif(n, 0.1, 100)
 #' g <- set.vertex.attribute(g, name = "gene.exp", value = gene.exp)
-#' heat <- rep(0,n)
-#' heat[sample(1:n, 1)] = 1
+#' heat <- rep(0, n)
+#' heat[sample(1:n, 1)] <- 1
 #' results <- heatDiffusionWeighted(g, heat, 100)
 
 
@@ -36,12 +36,32 @@ heatDiffusionWeighted <- function(graph, heat, t = 50) {
   net.tmp <- gene.exp.table * net
   net.tmp <- net.tmp / gene.exp
   trans.mat <- net.tmp / rowSums(net.tmp)
+  nan.idx <- which(is.nan(trans.mat) == TRUE)
+  trans.mat[nan.idx] <- 0
   # get the steady-state vector
   n <- ncol(trans.mat)
   a <- t(trans.mat-diag(n))
   a <- rbind(a, rep(1,n))
-  b <- c(rep(0,n), 1)
-  mu<-qr.solve(a,b)
+  # check if a is a square matrix
+  a.tmp <- unique(a)
+  mat.singular <- FALSE
+  if (ncol(a.tmp) == nrow(a.tmp)) { # a square matrix
+    a.det <- det(a.tmp)
+    # check if singular matrix
+    if (a.det == 0) {
+      # singluar matrix
+      cat("No steady state vector can be determined! \n")
+      mat.singular <- TRUE
+    } else {
+      # nonsingluar matrix
+      b <- c(rep(0,n), 1)
+      mu<-qr.solve(a,b)
+    }
+  } else { # not a square matrix
+    b <- c(rep(0,n), 1)
+    mu<-qr.solve(a,b)
+  }
+  
   
   for (i in seq_len(t)) {
     heat.info[ , i+1] <- as.vector(heat.info[ , i] %*% trans.mat)
@@ -62,10 +82,15 @@ heatDiffusionWeighted <- function(graph, heat, t = 50) {
   
   heat.change.df <- data.frame(heat.change.mat)
   heat.change.df$Node<-as.factor(heat.change.df$Node)
-  fig = ggplot(data = heat.change.df, aes(x = Time, y = Heat, group = Node, color = Node)) + geom_line() + geom_point()
+  fig <- ggplot(data = heat.change.df, aes(x = Time, y = Heat, group = Node, color = Node)) + geom_line() + geom_point()
   ggsave("heatW.png")
   
-  return(list(steady.state = sum(heat)*mu, heat.change = heat.info, fig = fig))
+  if (mat.singular) {
+    return(list(heat.change = heat.info, fig = fig))
+  } else {
+    return(list(steady.state = sum(heat)*mu, heat.change = heat.info, fig = fig))
+  }
+  
 }
 
 

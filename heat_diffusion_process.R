@@ -23,7 +23,7 @@
 #' net <- as.matrix(get.adjacency(g))
 #' # heat <- c(1,0,0,0,1,0,1,0,1,0)
 #' heat <- rep(0,n)
-#' heat[sample(1:n, 1)] = 1
+#' heat[sample(1:n, 1)] <- 1
 #' results <- heatDiffusionProcess(g, heat, 50)
 
 heatDiffusionProcess <- function(graph, heat, t = 50, alpha = 1) {
@@ -51,14 +51,27 @@ heatDiffusionProcess <- function(graph, heat, t = 50, alpha = 1) {
   n <- ncol(trans.mat)
   a <- t(trans.mat-diag(n))
   a <- as.matrix(a)
-  a.det <- det(a)
-  if (a.det == 0) {
-    cat("No steady state vector can be determined! \n")
-  } else {
-    a <- rbind(a, rep(1,n))
+  a <- rbind(a, rep(1,n))
+  # check if a is a square matrix
+  a.tmp <- unique(a)
+  mat.singular <- FALSE
+  if (ncol(a.tmp) == nrow(a.tmp)) { # a square matrix
+    a.det <- det(a.tmp)
+    # check if singular matrix
+    if (a.det == 0) {
+      # singluar matrix
+      mat.singular <- TRUE
+      cat("No steady state vector can be determined! \n")
+    } else {
+      # nonsingluar matrix
+      b <- c(rep(0,n), 1)
+      mu<-qr.solve(a,b)
+    }
+  } else { # not a square matrix
     b <- c(rep(0,n), 1)
     mu<-qr.solve(a,b)
   }
+  
   
 
 	idx <- seq(0.1, t*0.1, 0.1)
@@ -82,7 +95,7 @@ heatDiffusionProcess <- function(graph, heat, t = 50, alpha = 1) {
     heat.change.df$Node<-as.factor(heat.change.df$Node)
 	  fig = ggplot(data = heat.change.df, aes(x = Time, y = Heat, group = Node, color = Node)) + geom_line() + geom_point()
 	  ggsave(filename = "heatDP.png")
-	  if (a.det == 0) {
+	  if (mat.singular) {
 	    return(list(heat.change = heat.info, fig = fig))
 	  } else {
 	    return(list(steady.state = sum(heat)*mu, heat.change = heat.info, fig = fig))
