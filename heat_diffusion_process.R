@@ -35,7 +35,7 @@ heatDiffusionProcess <- function(graph, heat, t = 50, alpha = 1) {
   nodes.num <- nrow(net)
   if (is_directed(graph)) {
     # get the transition matrix for directed network
-    node.outdegree <- degree(graph, mode = "out")
+    node.outdegree <- igraph::degree(graph, mode = "out")
     tau <- node.outdegree
     tau[which(tau != 0)] <- 1
     node.outdegree[which(node.outdegree ==  0)] <- 1

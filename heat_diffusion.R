@@ -20,7 +20,7 @@
 #' g <- sample_pa(n,directed=T) # scale-free network
 #' # heat <- c(1,0,0,0,1,0,1,0,1,0)
 #' heat <- rep(0,n)
-#' heat[sample(1:n, 1)] = 1
+#' heat[sample(1:n, 1)] <- 1
 #' results <- heatDiffusion(g, heat, 100, method="heatS")
 
 
@@ -37,22 +37,22 @@ heatDiffusion <- function(graph, heat, t = 50, method = "probS") {
   net <- as.matrix(get.adjacency(graph))
   if (method == "probS") {
     if (is_directed(graph)) {
-      trans.mat <- net/degree(graph, mode = "out")
+      trans.mat <- net/igraph::degree(graph, mode = "out")
       # get nan idx
       nan.idx <- which(is.nan(trans.mat) == TRUE)
       trans.mat[nan.idx] <- 0
     } else {
-      trans.mat <- net/degree(graph)
+      trans.mat <- net/igraph::degree(graph)
     }
   	
   } else {
   	if (is_directed(graph)) {
-  	  trans.mat <- t(t(net)/degree(graph, mode = "in"))
+  	  trans.mat <- t(t(net)/igraph::degree(graph, mode = "in"))
   	  # get nan idx
   	  nan.idx <- which(is.nan(trans.mat) == TRUE)
   	  trans.mat[nan.idx] <- 0
   	} else {
-  	  trans.mat <- t(net/degree(graph))
+  	  trans.mat <- t(net/igraph::degree(graph))
   	}
   }
   
@@ -62,12 +62,14 @@ heatDiffusion <- function(graph, heat, t = 50, method = "probS") {
   a <- rbind(a, rep(1,n))
   # check if a is a square matrix
   a.tmp <- unique(a)
+  mat.singular <- FALSE
   if (ncol(a.tmp) == nrow(a.tmp)) { # a square matrix
     a.det <- det(a.tmp)
     # check if singular matrix
     if (a.det == 0) {
       # singluar matrix
       cat("No steady state vector can be determined! \n")
+      mat.singular <- TRUE
     } else {
       # nonsingluar matrix
       b <- c(rep(0,n), 1)
@@ -106,7 +108,7 @@ heatDiffusion <- function(graph, heat, t = 50, method = "probS") {
   	ggsave(filename = "heatS.png")
   }
   
-  if (a.det == 0) {
+  if (mat.singular) {
     return(list(heat.change = heat.info, fig = fig))
   } else {
     return(list(steady.state = sum(heat)*mu, heat.change = heat.info, fig = fig))
