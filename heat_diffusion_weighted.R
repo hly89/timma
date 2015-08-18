@@ -1,11 +1,11 @@
 #' Heat diffusion functions
 #'
-#' A function to implement heatS and probS algorithms for undirected networks.
+#' A function to implement heatS and probS algorithms for undirected/directed networks.
 #' @param graph an igraph object with gene.exp as node attributes.
 #' @param heat a vector of initial heat for each node.
 #' @param t an integer to specify the number of iterations.
 #' @return a plot of the heat of each node at each iteration and a list of the following components:
-#' \item steady.state a vector of the heat of each node at steady state.
+#' \item steady.state a vector of the heat of each node at steady state if it can be determined.
 #' \item heat.change a matrix of the heat of each node at each iteration.
 #' \item fig the plot object.
 #' @author Liye He \email{liye.he@@helsinki.fi}
@@ -33,8 +33,14 @@ heatDiffusionWeighted <- function(graph, heat, t = 50) {
   gene.exp <- V(graph)$gene.exp
   gene.exp.table <- t(matrix(rep(gene.exp, nodes.num), nodes.num, nodes.num))
   net <- as.matrix(get.adjacency(graph))
-  net.tmp <- gene.exp.table * net
-  net.tmp <- net.tmp / gene.exp
+  if (is_directed(graph)) {
+      net.tmp <- t(t(gene.exp.table)*net)/gene.exp
+      #trans.mat <- net.tmp / rowSums(net.tmp)
+   
+    } else {
+      net.tmp <- gene.exp.table * net
+      net.tmp <- net.tmp / gene.exp
+  }
   trans.mat <- net.tmp / rowSums(net.tmp)
   nan.idx <- which(is.nan(trans.mat) == TRUE)
   trans.mat[nan.idx] <- 0
